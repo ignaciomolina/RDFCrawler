@@ -41,7 +41,8 @@ def get_resource(path):
                                          format='turtle')
                          .replace(crawler.root, 'http://localhost:5000/'), 200,
                          {'Content-Type': 'text/turtle',
-                          'Last-Modified': '%s GMT' % date})
+                          'Last-Modified': '%s GMT' % date,
+                          'ETag': '%s' % hash(date)})
 
 
 if __name__ == '__main__':
