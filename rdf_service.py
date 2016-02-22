@@ -16,8 +16,12 @@ app = Flask(__name__)
 @app.route('/update', methods=['POST'])
 def update_graph():
 
+    if not crawler.lock.acquire(False):
+        return make_response('Crawling in progress.', 503)
+
     crawler.start()
 
+    crawler.lock.release()
     return make_response('Crawling complete after: %s seconds with %s '
                          'predicates.' % (crawler.last_process_time,
                                           len(crawler.graph)), 200)
@@ -26,6 +30,9 @@ def update_graph():
 @app.route('/', defaults={'path': ''}, methods=['GET'])
 @app.route('/<path:path>')
 def get_resource(path):
+
+    if not crawler.lock.acquire(False):
+        return make_response('Service currently busy with update process.', 503)
 
     target = '%s%s' % (crawler.root, path)
 
@@ -37,6 +44,7 @@ def get_resource(path):
     date = datetime.utcfromtimestamp(crawler.last_update)\
         .strftime('%a, %d %b %Y %H:%M:%S %Z')
 
+    crawler.lock.release()
     return make_response(graph.serialize(base='http://localhost:5000/',
                                          format='turtle')
                          .replace(crawler.root, 'http://localhost:5000/'), 200,
@@ -56,9 +64,8 @@ if __name__ == '__main__':
     if m is not None:
         root_uri = m.group(1)
         crawler = RDFCrawler(root_uri)
-        crawler.start()
 
-        app.run()
+        app.run(threaded = True)
 
     else:
         print('No URI has been set it.')

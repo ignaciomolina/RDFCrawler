@@ -1,5 +1,6 @@
 import time
 from sys import stdin
+from threading import RLock
 
 from rdflib import ConjunctiveGraph, URIRef
 
@@ -16,11 +17,14 @@ class RDFCrawler:
         :param domains: list of permits domains to crawl.
         """
         self.root = uri
-        self.graph = ConjunctiveGraph()
+        self.graph_route = hash(self.root)
+        self.graph = ConjunctiveGraph('Sleepycat')
+        self.graph.open('graph_store_%s' % self.graph_route, create=True)
         self.filter_domains = domains
         self.filter_domains.add(uri)
         self.last_process_time = 0.0
-        self.last_update = None
+        self.last_update = 0.0
+        self.lock = RLock()
 
     def _filter_uris(self, uri_list):
 
@@ -37,7 +41,7 @@ class RDFCrawler:
         :param subject: the URIRef or URI to check if it has current context.
         :return: True if subject has a current context.
         """
-        return len(self._graph.get_context(self._get_context_id(subject))) > 1
+        return len(self.graph.get_context(self._get_context_id(subject))) > 1
 
     @staticmethod
     def _get_context_id(subject):
@@ -55,19 +59,24 @@ class RDFCrawler:
         """
             start method for crawling.
         """
-        print('Start crawling: %s' % self.root)
-        self._graph = ConjunctiveGraph()
+        self.lock.acquire(True)
 
+        # Erase old graph
+        for t in self.graph:
+            self.graph.remove(t)
+
+        # Crawl for data
+        print('Start crawling: %s' % self.root)
         start_time = time.time()
         self._crawl([self.root])
         end_time = time.time()
-
-        self.graph = self._graph
 
         self.last_update = end_time
         self.last_process_time = end_time - start_time
         print('Crawling complete after: %s seconds with %s predicates.' %
               (self.last_process_time, len(self.graph)))
+
+        self.lock.release()
 
     def _crawl(self, uri_list):
         """
@@ -82,13 +91,13 @@ class RDFCrawler:
                     # A few considerations about parsing params.
                     #   publicID = uri due to redirection issues
                     #   Format = None due to default params use 'XML'
-                    self._graph.parse(uri, publicID=uri, format=None)
+                    self.graph.parse(uri, publicID=uri, format=None)
                 except Exception as e:
                     print('%s no parsable because: %s' % (uri, e))
 
             # Check that there are context that remains without parsing
             objects = set([self._get_context_id(o)
-                           for o in set(self._graph.objects(None, None))
+                           for o in set(self.graph.objects(None, None))
                            if isinstance(o, URIRef) and
                            not self._has_context(o)])
 
