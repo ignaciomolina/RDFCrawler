@@ -12,7 +12,7 @@ setup(
                   'a RDF topology.',
     keywards = ['rdf', 'crawler', 'replication'],
     url = 'https://github.com/ignaciomolina/RDFCrawler',
-
+    download_url = 'https://github.com/ignaciomolina/RDFCrawler/tarball/1.0',
     packages = find_packages(),
     scripts= ['rdf_service.py']
 )
