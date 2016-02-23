@@ -1,4 +1,5 @@
 import re
+import sys
 from datetime import datetime
 
 from flask import Flask, make_response, request
@@ -55,18 +56,25 @@ def get_resource(path):
 
 if __name__ == '__main__':
 
-    # Read configuration file
-    f = open('rdf_crawler.cfg', 'r')
-    config = f.read()
-    m = re.search("root = '(.*)'", config)
-    f.close()
+    root_uri = None
 
-    if m is not None:
-        root_uri = m.group(1)
+    if len(sys.argv) > 1:
+
+        root_uri = sys.argv[1]
+    else:
+        # Read configuration file
+        f = open('rdf_crawler.cfg', 'r')
+        config = f.read()
+        m = re.search("root = '(.*)'", config)
+        f.close()
+
+        if m is not None:
+            root_uri = m.group(1)
+
+    if root_uri is not None:
         crawler = RDFCrawler(root_uri)
-
         app.run(threaded = True)
 
     else:
-        print('No URI has been set it.')
+        print('rdf_service.py <uri>')
         exit(0)
