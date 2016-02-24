@@ -4,7 +4,7 @@ __author__ = 'Ignacio Molina Cuquerella'
 __email__ = 'imolina@centeropenmiddleware.com'
 
 setup(
-    name = 'RDFCrawlerService',
+    name = 'RDFCrawler',
     version = '1.0',
     author = 'Ignacio Molina Cuquerella',
     author_email = 'imolina@centeropenmiddleware.com',

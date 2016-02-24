@@ -5,4 +5,3 @@ This repository contains a Python module with the following services:
     - Endpoints:
       - RDF: Service offers the replicated object's predicates.
       - Update: Service also has an endpoint to update crawling information.
-    - Configuration: URI has to be set in rdf_crawler.cfg

@@ -58,22 +58,12 @@ if __name__ == '__main__':
 
     root_uri = None
 
-    if len(sys.argv) > 1:
+    if len(sys.argv) == 2:
 
         root_uri = sys.argv[1]
-    else:
-        # Read configuration file
-        f = open('rdf_crawler.cfg', 'r')
-        config = f.read()
-        m = re.search("root = '(.*)'", config)
-        f.close()
-
-        if m is not None:
-            root_uri = m.group(1)
-
-    if root_uri is not None:
         crawler = RDFCrawler(root_uri)
-        app.run(threaded = True)
+        app.run(host='0.0.0.0',
+                threaded=True)
 
     else:
         print('rdf_service.py <uri>')
