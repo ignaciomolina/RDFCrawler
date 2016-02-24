@@ -56,15 +56,13 @@ def get_resource(path):
 
 if __name__ == '__main__':
 
-    root_uri = 'http://russell.dia.fi.upm.es/orgharvester/'
+    if len(sys.argv) == 2:
 
-    # if len(sys.argv) == 2:
-
-        # root_uri = sys.argv[1]
-    crawler = RDFCrawler(root_uri)
-    app.run(host='0.0.0.0',
+        root_uri = sys.argv[1]
+        crawler = RDFCrawler(root_uri)
+        app.run(host='0.0.0.0',
                 threaded=True)
 
-    # else:
-        # print('rdf_service.py <uri>')
-        # exit(0)
+    else:
+        print('rdf_service.py <uri>')
+        exit(0)

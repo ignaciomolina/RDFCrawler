@@ -1,3 +1,4 @@
+import logging
 import time
 from sys import stdin
 from threading import RLock
@@ -92,8 +93,9 @@ class RDFCrawler:
                     #   publicID = uri due to redirection issues
                     #   Format = None due to default params use 'XML'
                     self.graph.parse(uri, publicID=uri, format=None)
+                    logging.info('[OK]: %s' % uri)
                 except Exception as e:
-                    print('%s no parsable because: %s' % (uri, e))
+                    logging.info('[Error]: %s: %s' % (uri, e))
 
             # Check that there are context that remains without parsing
             objects = set([self._get_context_id(o)
