@@ -46,9 +46,9 @@ def get_resource(path):
         .strftime('%a, %d %b %Y %H:%M:%S %Z')
 
     crawler.lock.release()
-    return make_response(graph.serialize(base='http://localhost:5000/',
+    return make_response(graph.serialize(base=request.url_root,
                                          format='turtle')
-                         .replace(crawler.root, 'http://localhost:5000/'), 200,
+                         .replace(crawler.root, request.url_root), 200,
                          {'Content-Type': 'text/turtle',
                           'Last-Modified': '%s GMT' % date,
                           'ETag': '%s' % hash(date)})
@@ -56,15 +56,15 @@ def get_resource(path):
 
 if __name__ == '__main__':
 
-    root_uri = None
+    root_uri = 'http://russell.dia.fi.upm.es/orgharvester/'
 
-    if len(sys.argv) == 2:
+    # if len(sys.argv) == 2:
 
-        root_uri = sys.argv[1]
-        crawler = RDFCrawler(root_uri)
-        app.run(host='0.0.0.0',
+        # root_uri = sys.argv[1]
+    crawler = RDFCrawler(root_uri)
+    app.run(host='0.0.0.0',
                 threaded=True)
 
-    else:
-        print('rdf_service.py <uri>')
-        exit(0)
+    # else:
+        # print('rdf_service.py <uri>')
+        # exit(0)
