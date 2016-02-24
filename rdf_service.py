@@ -57,7 +57,7 @@ def get_resource(path):
 
 if __name__ == '__main__':
 
-    logging.basicConfig(filename='RDFCrawler.log', level=logging.INFO)
+    logging.basicConfig(level=logging.INFO)
 
     if len(sys.argv) == 2:
 
