@@ -11,6 +11,8 @@ __email__ = 'imolina@centeropenmiddleware.com'
 
 class RDFCrawler:
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self, uri, domains=set()):
         """
 
@@ -67,14 +69,14 @@ class RDFCrawler:
             self.graph.remove(t)
 
         # Crawl for data
-        print('Start crawling: %s' % self.root)
+        logging.info('Start crawling: %s' % self.root)
         start_time = time.time()
         self._crawl([self.root])
         end_time = time.time()
 
         self.last_update = end_time
         self.last_process_time = end_time - start_time
-        print('Crawling complete after: %s seconds with %s predicates.' %
+        logging.info('Crawling complete after: %s seconds with %s predicates.' %
               (self.last_process_time, len(self.graph)))
 
         self.lock.release()

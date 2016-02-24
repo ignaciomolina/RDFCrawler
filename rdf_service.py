@@ -1,4 +1,4 @@
-import re
+import logging
 import sys
 from datetime import datetime
 
@@ -12,6 +12,7 @@ __email__ = 'imolina@centeropenmiddleware.com'
 
 
 app = Flask(__name__)
+logger = logging.getLogger(__name__)
 
 
 @app.route('/update', methods=['POST'])
@@ -55,6 +56,8 @@ def get_resource(path):
 
 
 if __name__ == '__main__':
+
+    logging.basicConfig(filename='RDFCrawler.log', level=logging.INFO)
 
     if len(sys.argv) == 2:
 
