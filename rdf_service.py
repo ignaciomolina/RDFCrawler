@@ -1,9 +1,10 @@
 import logging
 import sys
 from datetime import datetime
-
+from threading import Thread
 from flask import Flask, make_response, request
 from rdflib import URIRef
+
 
 from rdf_crawler import RDFCrawler
 
@@ -21,20 +22,16 @@ def update_graph():
     if not crawler.lock.acquire(False):
         return make_response('Crawling in progress.', 503)
 
-    crawler.start()
+    Thread(target=crawler.start).start()
 
     crawler.lock.release()
-    return make_response('Crawling complete after: %s seconds with %s '
-                         'predicates.' % (crawler.last_process_time,
-                                          len(crawler.graph)), 200)
+    return make_response('Initiated crawling exploration for %s' % crawler.root,
+                         200)
 
 
 @app.route('/', defaults={'path': ''}, methods=['GET'])
 @app.route('/<path:path>')
 def get_resource(path):
-
-    if not crawler.lock.acquire(False):
-        return make_response('Service currently busy with update process.', 503)
 
     target = '%s%s' % (crawler.root, path)
 
@@ -46,7 +43,6 @@ def get_resource(path):
     date = datetime.utcfromtimestamp(crawler.last_update)\
         .strftime('%a, %d %b %Y %H:%M:%S %Z')
 
-    crawler.lock.release()
     return make_response(graph.serialize(base=request.url_root,
                                          format='turtle')
                          .replace(crawler.root, request.url_root), 200,
