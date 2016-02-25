@@ -10,7 +10,7 @@ setup(
     author_email = 'imolina@centeropenmiddleware.com',
     description = 'A RESTful services for Python that explores and replicates '
                   'a RDF topology.',
-    keyward = ['rdf', 'crawler', 'replication'],
+    keywords = ['rdf', 'crawler', 'replication'],
     url = 'https://github.com/ignaciomolina/RDFCrawler',
     download_url = 'https://github.com/ignaciomolina/RDFCrawler/tarball/1.4.3',
     packages = find_packages(),
