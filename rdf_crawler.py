@@ -20,22 +20,22 @@ class RDFCrawler:
         :param domains: list of permits domains to crawl.
         """
         self.root = uri
-        self.graph_route = hash(self.root)
+        self.graph_route = 'graph_store_%s' % hash(self.root)
         self.graph = ConjunctiveGraph('Sleepycat')
-        self.graph.open('graph_store_%s' % self.graph_route, create=True)
-        self.filter_domains = domains
-        self.filter_domains.add(uri)
+        self.graph.open(self.graph_route, create=True)
+        self._filter_domains = domains
+        self._filter_domains.add(uri)
         self.last_process_time = 0.0
         self.last_update = 0.0
         self.lock = RLock()
 
-    def _filter_uris(self, uri_list):
+    def filter_uris(self, uri_list):
 
         """
         :param uri_list: list of URIs to be filtered.
         :return: filtered list of URIs.
         """
-        return [uri for uri in uri_list for match in self.filter_domains
+        return [uri for uri in uri_list for match in self._filter_domains
                 if match in str(uri)]
 
     def _has_context(self, subject):
@@ -76,8 +76,8 @@ class RDFCrawler:
 
         self.last_update = end_time
         self.last_process_time = end_time - start_time
-        logging.info('Crawling complete after: %s seconds with %s predicates.' %
-              (self.last_process_time, len(self.graph)))
+        logging.info('Crawling complete after: %s seconds with %s predicates.'
+                     % (self.last_process_time, len(self.graph)))
 
         self.lock.release()
 
@@ -105,7 +105,7 @@ class RDFCrawler:
                            if isinstance(o, URIRef) and
                            not self._has_context(o)])
 
-            self._crawl(self._filter_uris(objects))
+            self._crawl(self.filter_uris(objects))
 
 
 if __name__ == '__main__':
