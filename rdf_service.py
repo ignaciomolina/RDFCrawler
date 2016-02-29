@@ -49,13 +49,11 @@ def get_stats():
     response['num_triplets'] = str(len(crawler.graph))
     response['entities'] = entities
     response['size'] = size
-    response['crawl_time'] = crawler.last_process_time
+    response['crawling_time'] = crawler.last_process_time
     response['last_update'] = date
 
     return make_response(json.dumps(response), 200,
-                         {'Content-Type': 'application/json',
-                          'Last-Modified': '%s GMT' % date,
-                          'ETag': '%s' % hash(date)})
+                         {'Content-Type': 'application/json'})
 
 
 @app.route('/', defaults={'path': ''}, methods=['GET'])
