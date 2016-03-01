@@ -60,6 +60,10 @@ def get_stats():
 @app.route('/<path:path>')
 def get_resource(path):
 
+    negotiation = request.headers.get("Accept", "text/turtle")
+    if 'text/turtle' not in negotiation and '*/*' not in negotiation:
+        return make_response('', 406)
+
     target = '%s%s' % (crawler.root, path)
 
     graph = crawler.graph.get_context(URIRef(target))
