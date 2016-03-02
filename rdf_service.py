@@ -28,7 +28,7 @@ def update_graph():
 
     crawler.lock.release()
     return make_response('Initiated crawling exploration for %s' % crawler.root,
-                         200)
+                         200, {'Content-Type': 'text/plain'})
 
 
 @app.route('/stats', methods=['GET'])
