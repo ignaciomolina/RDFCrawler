@@ -1,6 +1,6 @@
 import json
 import logging
-import os
+import os, time
 import sys
 from datetime import datetime
 from threading import Thread
@@ -34,8 +34,7 @@ def update_graph():
 @app.route('/stats', methods=['GET'])
 def get_stats():
 
-    date = datetime.utcfromtimestamp(crawler.last_update)\
-        .strftime('%a, %d %b %Y %H:%M:%S %Z')
+    date = get_last_update(crawler.graph_route)
 
     entities = get_contexts(crawler.graph)
 
@@ -71,15 +70,16 @@ def get_resource(path):
     if len(graph) == 0:
         return make_response('No endpoint found at %s' % request.url, 404)
 
-    date = datetime.utcfromtimestamp(crawler.last_update)\
-        .strftime('%a, %d %b %Y %H:%M:%S %Z')
+    date = get_last_update(crawler.graph_route)
+
+    header = dict()
+    header['Content-Type'] = 'text/turtle'
+    header['Last-Modified'] = '%s GMT' % date,
+    header['ETag'] = '%s' % hash(date)
 
     return make_response(graph.serialize(base=request.url_root,
                                          format='turtle')
-                         .replace(crawler.root, request.url_root), 200,
-                         {'Content-Type': 'text/turtle',
-                          'Last-Modified': '%s GMT' % date,
-                          'ETag': '%s' % hash(date)})
+                         .replace(crawler.root, request.url_root), 200, header)
 
 
 def get_contexts(graph):
@@ -91,6 +91,16 @@ def get_contexts(graph):
             entities[o] = entities.get(o, 0) + 1
 
     return entities
+
+
+def get_last_update(folder):
+
+    last_update = os.path.getmtime(folder)
+
+    date = datetime.utcfromtimestamp(last_update)\
+        .strftime('%a, %d %b %Y %H:%M:%S %Z')
+
+    return date
 
 
 def get_size(folder):

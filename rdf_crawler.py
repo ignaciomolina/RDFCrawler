@@ -26,7 +26,6 @@ class RDFCrawler:
         self._filter_domains = domains
         self._filter_domains.add(uri)
         self.last_process_time = 0.0
-        self.last_update = 0.0
         self.lock = RLock()
 
     def filter_uris(self, uri_list):
@@ -38,13 +37,13 @@ class RDFCrawler:
         return [uri for uri in uri_list for match in self._filter_domains
                 if match in str(uri)]
 
-    def _has_context(self, subject):
+    def _has_context(self, graph, subject):
         """
 
         :param subject: the URIRef or URI to check if it has current context.
         :return: True if subject has a current context.
         """
-        return len(self.graph.get_context(self._get_context_id(subject))) > 1
+        return len(graph.get_context(self._get_context_id(subject))) > 1
 
     @staticmethod
     def _get_context_id(subject):
@@ -64,9 +63,8 @@ class RDFCrawler:
         """
         self.lock.acquire(True)
 
-        # Erase old graph
-        for t in self.graph:
-            self.graph.remove(t)
+        self._graph = ConjunctiveGraph('Sleepycat')
+        self._graph.open('temp_graph', create=True)
 
         # Crawl for data
         logging.info('Start crawling: %s' % self.root)
@@ -74,7 +72,16 @@ class RDFCrawler:
         self._crawl([self.root])
         end_time = time.time()
 
-        self.last_update = end_time
+        # Erase old graph
+        for t in self.graph:
+             self.graph.remove(t)
+
+        for t in self._graph:
+            self.graph.add(t)
+            self._graph.remove(t) # Erase temporary graph
+
+        self._graph.close()
+
         self.last_process_time = end_time - start_time
         logging.info('Crawling complete after: %s seconds with %s predicates.'
                      % (self.last_process_time, len(self.graph)))
@@ -94,16 +101,16 @@ class RDFCrawler:
                     # A few considerations about parsing params.
                     #   publicID = uri due to redirection issues
                     #   Format = None due to default params use 'XML'
-                    self.graph.parse(uri, publicID=uri, format=None)
+                    self._graph.parse(uri, publicID=uri, format=None)
                     logging.info('[OK]: %s' % uri)
                 except Exception as e:
                     logging.info('[Error]: %s: %s' % (uri, e))
 
             # Check that there are context that remains without parsing
             objects = set([self._get_context_id(o)
-                           for o in set(self.graph.objects(None, None))
+                           for o in set(self._graph.objects(None, None))
                            if isinstance(o, URIRef) and
-                           not self._has_context(o)])
+                           not self._has_context(self._graph, o)])
 
             self._crawl(self.filter_uris(objects))
 
