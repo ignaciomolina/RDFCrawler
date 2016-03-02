@@ -63,24 +63,15 @@ class RDFCrawler:
         """
         self.lock.acquire(True)
 
-        self._graph = ConjunctiveGraph('Sleepycat')
-        self._graph.open('temp_graph', create=True)
+        # Erase old graph
+        for q in self.graph.quads():
+            self.graph.remove(q)
 
         # Crawl for data
         logging.info('Start crawling: %s' % self.root)
         start_time = time.time()
         self._crawl([self.root])
         end_time = time.time()
-
-        # Erase old graph
-        for t in self.graph:
-             self.graph.remove(t)
-
-        for t in self._graph:
-            self.graph.add(t)
-            self._graph.remove(t) # Erase temporary graph
-
-        self._graph.close()
 
         self.last_process_time = end_time - start_time
         logging.info('Crawling complete after: %s seconds with %s predicates.'
@@ -101,16 +92,16 @@ class RDFCrawler:
                     # A few considerations about parsing params.
                     #   publicID = uri due to redirection issues
                     #   Format = None due to default params use 'XML'
-                    self._graph.parse(uri, publicID=uri, format=None)
+                    self.graph.parse(uri, publicID=uri, format=None)
                     logging.info('[OK]: %s' % uri)
                 except Exception as e:
                     logging.info('[Error]: %s: %s' % (uri, e))
 
             # Check that there are context that remains without parsing
             objects = set([self._get_context_id(o)
-                           for o in set(self._graph.objects(None, None))
+                           for o in set(self.graph.objects(None, None))
                            if isinstance(o, URIRef) and
-                           not self._has_context(self._graph, o)])
+                           not self._has_context(self.graph, o)])
 
             self._crawl(self.filter_uris(objects))
 
